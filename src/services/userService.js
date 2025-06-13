@@ -5,7 +5,7 @@ const userModel = require("../models/userModel");
 const userService = {
   // Register new user
   async signup(userData) {
-    const { full_name, email, password } = userData;
+    const { fullName, email, password } = userData;
 
     // Check if user already exists
     const existingUser = await userModel.findByEmail(email);
@@ -19,7 +19,7 @@ const userService = {
 
     // Create user
     const user = await userModel.create({
-      full_name,
+      full_name: fullName,
       email,
       password_hash,
     });

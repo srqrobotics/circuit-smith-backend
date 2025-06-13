@@ -3,7 +3,7 @@ const Joi = require("joi");
 // User validation schemas
 const userSchemas = {
   signup: Joi.object({
-    full_name: Joi.string().min(2).max(100).required().messages({
+    fullName: Joi.string().min(2).max(100).required().messages({
       "string.min": "Full name must be at least 2 characters long",
       "string.max": "Full name cannot exceed 100 characters",
       "any.required": "Full name is required",

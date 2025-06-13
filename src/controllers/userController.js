@@ -4,9 +4,9 @@ const userController = {
   // Signup endpoint
   async signup(req, res) {
     try {
-      const { full_name, email, password } = req.body;
+      const { fullName, email, password } = req.body;
 
-      const user = await userService.signup({ full_name, email, password });
+      const user = await userService.signup({ fullName, email, password });
 
       res.status(201).json({
         success: true,
