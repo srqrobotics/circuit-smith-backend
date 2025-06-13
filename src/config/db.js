@@ -2,9 +2,14 @@ require("dotenv").config();
 const postgres = require("postgres");
 const { drizzle } = require("drizzle-orm/postgres-js");
 
-// Create postgres connection
+// Create postgres connection with explicit SSL configuration
 const queryClient = postgres(process.env.DATABASE_URL, {
-  ssl: process.env.NODE_ENV === "production",
+  ssl: {
+    rejectUnauthorized: false, // For hosted databases like Neon
+  },
+  max: 10, // Maximum number of connections
+  idle_timeout: 20,
+  connect_timeout: 60,
 });
 
 // Create drizzle ORM instance

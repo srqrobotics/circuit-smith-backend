@@ -1,8 +1,9 @@
 const express = require("express");
-const componentRoutes = require("./componentRoutes");
+const userRoutes = require("./userRoute");
 
 const router = express.Router();
 
-router.use("/components", componentRoutes);
+// Mount route modules
+router.use("/users", userRoutes);
 
 module.exports = router;
