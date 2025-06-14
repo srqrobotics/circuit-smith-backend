@@ -2,7 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
+const session = require("express-session");
 const swaggerUi = require("swagger-ui-express");
+const passport = require("./config/passport");
 const routes = require("./routes");
 const { testConnection } = require("./config/db");
 
@@ -22,6 +24,23 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Session middleware for passport
+app.use(
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Swagger Documentation (conditionally load)
 try {

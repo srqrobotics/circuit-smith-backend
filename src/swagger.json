@@ -239,6 +239,40 @@
           }
         }
       }
+    },
+    "/api/users/auth/google": {
+      "get": {
+        "summary": "Initiate Google OAuth authentication",
+        "tags": ["Authentication"],
+        "description": "Redirects to Google OAuth consent screen",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth"
+          }
+        }
+      }
+    },
+    "/api/users/auth/google/callback": {
+      "get": {
+        "summary": "Google OAuth callback",
+        "tags": ["Authentication"],
+        "description": "Handles Google OAuth callback and sets authentication cookie",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Authorization code from Google"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend on success/failure"
+          }
+        }
+      }
     }
   },
   "tags": [

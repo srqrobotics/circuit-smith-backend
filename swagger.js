@@ -24,7 +24,7 @@ const options = {
               type: "integer",
               description: "User unique identifier",
             },
-            full_name: {
+            fullName: {
               type: "string",
               description: "User's full name",
             },
@@ -44,12 +44,12 @@ const options = {
               description: "Last update timestamp",
             },
           },
-          required: ["full_name", "email"],
+          required: ["fullName", "email"],
         },
         UserSignup: {
           type: "object",
           properties: {
-            full_name: {
+            fullName: {
               type: "string",
               minLength: 2,
               maxLength: 100,
@@ -68,7 +68,7 @@ const options = {
               description: "User's password",
             },
           },
-          required: ["full_name", "email", "password"],
+          required: ["fullName", "email", "password"],
         },
         UserSignin: {
           type: "object",

@@ -1,4 +1,5 @@
 const userService = require("../services/userService");
+const jwt = require("jsonwebtoken");
 
 const userController = {
   // Signup endpoint
@@ -78,6 +79,49 @@ const userController = {
       success: true,
       message: "Logged out successfully",
     });
+  },
+
+  // Google OAuth success callback
+  async googleCallback(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          error: "Google authentication failed",
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: req.user.id, email: req.user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      // Set httpOnly cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Remove password from response
+      const { password_hash: _, ...userResponse } = req.user;
+
+      // Redirect to frontend with success
+      const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+      res.redirect(`${frontendURL}/auth/google/callback`);
+    } catch (error) {
+      res.status(500).json({
+        error: "Authentication error",
+      });
+    }
+  },
+
+  // Google OAuth failure callback
+  async googleFailure(req, res) {
+    const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendURL}/auth/failure`);
   },
 };
 
