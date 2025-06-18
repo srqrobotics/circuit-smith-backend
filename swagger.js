@@ -85,12 +85,107 @@ const options = {
           },
           required: ["email", "password"],
         },
+        ComponentsRequest: {
+          type: "object",
+          properties: {
+            components: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+              description: "List of electronic component names",
+            },
+          },
+          required: ["components"],
+        },
+        ApplicationItem: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "Name of the application",
+            },
+            description: {
+              type: "string",
+              description: "Brief description of the application",
+            },
+          },
+        },
+        ApplicationsResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              description: "Indicates if the request was successful",
+            },
+            applications: {
+              type: "object",
+              properties: {
+                applications: {
+                  type: "array",
+                  items: {
+                    $ref: "#/components/schemas/ApplicationItem",
+                  },
+                  description: "List of possible applications",
+                },
+              },
+            },
+            userId: {
+              type: "integer",
+              description: "ID of the user who made the request",
+            },
+          },
+        },
+        GenerateCodeRequest: {
+          type: "object",
+          properties: {
+            componentsInfo: {
+              type: "string",
+              description: "Information about the components to be used",
+            },
+            selectedApp: {
+              type: "object",
+              description: "Selected application information",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Name of the selected application",
+                },
+                description: {
+                  type: "string",
+                  description: "Description of the selected application",
+                },
+              },
+              required: ["name", "description"],
+            },
+          },
+          required: ["componentsInfo", "selectedApp"],
+        },
+        GenerateCodeResponse: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              description: "Indicates if the request was successful",
+            },
+            code: {
+              type: "string",
+              description:
+                "Generated code with wiring configuration in JSON format",
+            },
+          },
+        },
       },
       securitySchemes: {
         cookieAuth: {
           type: "apiKey",
           in: "cookie",
           name: "token",
+        },
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
     },
