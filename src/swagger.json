@@ -1,0 +1,592 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Circuit Smith API",
+    "version": "1.0.0",
+    "description": "API for Circuit Smith electronics component management"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "User unique identifier"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "User's full name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Account creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": ["fullName", "email"]
+      },
+      "UserSignup": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "User's full name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255,
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 128,
+            "description": "User's password"
+          }
+        },
+        "required": ["fullName", "email", "password"]
+      },
+      "UserSignin": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "ComponentsRequest": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of electronic component names"
+          }
+        },
+        "required": ["components"]
+      },
+      "ApplicationItem": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the application"
+          },
+          "description": {
+            "type": "string",
+            "description": "Brief description of the application"
+          }
+        }
+      },
+      "ApplicationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful"
+          },
+          "applications": {
+            "type": "object",
+            "properties": {
+              "applications": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ApplicationItem"
+                },
+                "description": "List of possible applications"
+              }
+            }
+          },
+          "userId": {
+            "type": "integer",
+            "description": "ID of the user who made the request"
+          }
+        }
+      },
+      "GenerateCodeRequest": {
+        "type": "object",
+        "properties": {
+          "componentsInfo": {
+            "type": "string",
+            "description": "Information about the components to be used"
+          },
+          "selectedApp": {
+            "type": "object",
+            "description": "Selected application information",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the selected application"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the selected application"
+              }
+            },
+            "required": ["name", "description"]
+          }
+        },
+        "required": ["componentsInfo", "selectedApp"]
+      },
+      "GenerateCodeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the request was successful"
+          },
+          "code": {
+            "type": "string",
+            "description": "Generated code with wiring configuration in JSON format"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/api/users/signup": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or user already exists"
+          }
+        }
+      }
+    },
+    "/api/users/signin": {
+      "post": {
+        "summary": "Sign in user",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/users/validate": {
+      "get": {
+        "summary": "Validate user token",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing token"
+          }
+        }
+      }
+    },
+    "/api/users/logout": {
+      "post": {
+        "summary": "Logout user",
+        "tags": ["Authentication"],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/auth/google": {
+      "get": {
+        "summary": "Initiate Google OAuth authentication",
+        "tags": ["Authentication"],
+        "description": "Redirects to Google OAuth consent screen",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth"
+          }
+        }
+      }
+    },
+    "/api/users/auth/google/callback": {
+      "get": {
+        "summary": "Google OAuth callback",
+        "tags": ["Authentication"],
+        "description": "Handles Google OAuth callback and sets authentication cookie",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Authorization code from Google"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to frontend on success/failure"
+          }
+        }
+      }
+    },
+    "/api/gpt/generate": {
+      "post": {
+        "summary": "Generate project applications based on components",
+        "tags": ["GPT"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComponentsRequest"
+              },
+              "example": {
+                "components": [
+                  "Arduino UNO",
+                  "LED",
+                  "Resistor",
+                  "Button",
+                  "DHT11 Temperature Sensor"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated applications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "applications": {
+                    "applications": [
+                      {
+                        "name": "Temperature Monitor with Alert",
+                        "description": "A system that monitors ambient temperature and triggers an LED alert when temperature exceeds a threshold."
+                      },
+                      {
+                        "name": "Interactive LED Controller",
+                        "description": "Button-controlled LED with different brightness levels based on press duration."
+                      }
+                    ]
+                  },
+                  "userId": 42
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing or empty components array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Components array is required and must not be empty"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Invalid token"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Failed to generate response from GPT"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gpt/generateCode": {
+      "post": {
+        "summary": "Generate code for a selected application",
+        "tags": ["GPT"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateCodeRequest"
+              },
+              "example": {
+                "componentsInfo": "Arduino UNO (Pins: D1-D13, A0-A5), LED (Pins: DATA), DHT11 Temperature Sensor (Pins: DATA)",
+                "selectedApp": {
+                  "name": "Temperature Monitor with Alert",
+                  "description": "A system that monitors ambient temperature and triggers an LED alert when temperature exceeds a threshold."
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateCodeResponse"
+                },
+                "example": {
+                  "success": true,
+                  "code": "{\n  \"components\": [\"Arduino UNO\", \"LED\", \"DHT11 Temperature Sensor\"],\n  \"wire\": [\n    {\n      \"ArduinoBoard\": \"D2\",\n      \"DHT11 Temperature Sensor\": \"DATA\"\n    },\n    {\n      \"ArduinoBoard\": \"D13\",\n      \"LED\": \"DATA\"\n    }\n  ]\n}\n\n// Arduino code would follow here"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Application description is required and must be a string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Invalid token"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Failed to generate code"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication endpoints"
+    },
+    {
+      "name": "GPT",
+      "description": "AI-powered functionality using OpenAI's GPT API"
+    }
+  ]
+}
