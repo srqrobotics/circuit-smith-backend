@@ -23,6 +23,18 @@ const runMigration = async () => {
       ADD COLUMN IF NOT EXISTS google_id VARCHAR(255)
     `);
 
+    // Create projects table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        userid INTEGER NOT NULL REFERENCES users(id),
+        json_string TEXT,
+        cpp_string TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     console.log("Migration completed successfully");
   } catch (err) {
     console.error("Migration failed:", err);

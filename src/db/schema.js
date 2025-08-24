@@ -1,4 +1,11 @@
-const { pgTable, serial, varchar, timestamp } = require("drizzle-orm/pg-core");
+const {
+  pgTable,
+  serial,
+  varchar,
+  timestamp,
+  text,
+  integer,
+} = require("drizzle-orm/pg-core");
 
 // Users table schema
 const users = pgTable("users", {
@@ -11,6 +18,19 @@ const users = pgTable("users", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Projects table schema
+const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  userid: integer("userid")
+    .notNull()
+    .references(() => users.id),
+  jsonString: text("json_string"),
+  cppString: text("cpp_string"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 module.exports = {
   users,
+  projects,
 };
