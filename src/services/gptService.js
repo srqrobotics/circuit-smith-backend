@@ -15,6 +15,7 @@ const gptService = {
               content: prompt,
             },
           ],
+          response_format: { type: "json_object" },
         },
         {
           headers: {
@@ -98,7 +99,8 @@ const gptService = {
             "ArduinoBoard": "Pin",
             "Component-2": "Pin"
           }
-        ]
+        ],
+        "arduinoCode": "Arduino code snippet"
       }
 
       Additionally, provide Arduino code that initializes the components, reads data (if applicable), processes it, and executes necessary actions.
@@ -115,7 +117,36 @@ const gptService = {
       const responseText = await this.generateResponse(codePrompt);
       console.log("GPT response:", responseText);
 
-      return responseText;
+      // Parse and validate JSON structure
+      let parsed;
+      try {
+        parsed =
+          typeof responseText === "string"
+            ? JSON.parse(responseText)
+            : responseText;
+      } catch (_) {
+        const jsonMatch = String(responseText).match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("Could not extract valid JSON from GPT response.");
+        }
+        parsed = JSON.parse(jsonMatch[0]);
+      }
+
+      if (!parsed || typeof parsed !== "object") {
+        throw new Error("GPT response was not a JSON object.");
+      }
+      const { components, wire, arduinoCode } = parsed;
+      if (
+        !Array.isArray(components) ||
+        !Array.isArray(wire) ||
+        typeof arduinoCode !== "string"
+      ) {
+        throw new Error(
+          "GPT response missing required fields: components, wire, arduinoCode."
+        );
+      }
+
+      return { components, wire, arduinoCode };
     } catch (error) {
       if (error.message.includes("code")) {
         throw new Error(
